@@ -3,16 +3,16 @@ package cache
 import (
 	"bytes"
 	"crypto/sha1"
+	"encoding/gob"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
-	"encoding/gob"
 
-	"github.com/schollz/gincache/persistence"
 	"github.com/gin-gonic/gin"
+	"github.com/schollz/gincache/persistence"
 )
 
 const (
@@ -28,6 +28,7 @@ type responseCache struct {
 	Header http.Header
 	Data   []byte
 }
+
 // RegisterResponseCacheGob registers the responseCache type with the encoding/gob package
 func RegisterResponseCacheGob() {
 	gob.Register(responseCache{})
@@ -136,6 +137,38 @@ func SiteCache(store persistence.CacheStore, expire time.Duration) gin.HandlerFu
 		key := CreateKey(url.RequestURI())
 		if err := store.Get(key, &cache); err != nil {
 			c.Next()
+		} else {
+			c.Writer.WriteHeader(cache.Status)
+			for k, vals := range cache.Header {
+				for _, v := range vals {
+					c.Writer.Header().Set(k, v)
+				}
+			}
+			c.Writer.Write(cache.Data)
+		}
+	}
+}
+
+// CachePageWithCookie Decorator
+func CachePageWithCookie(store persistence.CacheStore, expire time.Duration, cookiename string, handle gin.HandlerFunc) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var cache responseCache
+		url := c.Request.URL
+		cookie, _ := c.Cookie(cookiename)
+		key := CreateKey(url.RequestURI() + cookie)
+		if err := store.Get(key, &cache); err != nil {
+			if err != persistence.ErrCacheMiss {
+				log.Println(err.Error())
+			}
+			// replace writer
+			writer := newCachedWriter(store, expire, c.Writer, key)
+			c.Writer = writer
+			handle(c)
+
+			// Drop caches of aborted contexts
+			if c.IsAborted() {
+				store.Delete(key)
+			}
 		} else {
 			c.Writer.WriteHeader(cache.Status)
 			for k, vals := range cache.Header {
