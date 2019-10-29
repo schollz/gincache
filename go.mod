@@ -1,4 +1,4 @@
-module github.com/gin-contrib/cache
+module github.com/schollz/gincache
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20190329173943-551aad21a668
@@ -9,3 +9,5 @@ require (
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/stretchr/testify v1.3.0
 )
+
+go 1.13

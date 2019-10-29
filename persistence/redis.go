@@ -3,7 +3,7 @@ package persistence
 import (
 	"time"
 
-	"github.com/gin-contrib/cache/utils"
+	"github.com/schollz/gincache/utils"
 	"github.com/gomodule/redigo/redis"
 )
 

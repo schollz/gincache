@@ -11,7 +11,7 @@ import (
 	"time"
 	"encoding/gob"
 
-	"github.com/gin-contrib/cache/persistence"
+	"github.com/schollz/gincache/persistence"
 	"github.com/gin-gonic/gin"
 )
 

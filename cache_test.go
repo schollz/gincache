@@ -9,7 +9,7 @@ import (
 	"encoding/gob"
 	"bytes"
 
-	"github.com/gin-contrib/cache/persistence"
+	"github.com/schollz/gincache/persistence"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
